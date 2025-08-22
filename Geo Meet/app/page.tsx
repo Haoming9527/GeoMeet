@@ -20,8 +20,8 @@ import {
 } from "@coinbase/onchainkit/wallet";
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAccount } from "wagmi";
-import { Button } from "./components/DemoComponents";
-import { Icon } from "./components/DemoComponents";
+import { Button } from "./components/UI";
+import { Icon } from "./components/UI";
 import { GeoMap } from "./components/GeoMap";
 import { MessagesPanel } from "./components/MessagesPanel";
 import { sortByNearest } from "@/lib/geo";

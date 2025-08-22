@@ -86,7 +86,7 @@ export function MessagesPanel({
   return (
     <div className="fixed inset-0 z-[9999] bg-black bg-opacity-60">
       <div className="absolute inset-0 flex items-center justify-center p-3">
-        <div className="w-full max-w-sm bg-[var(--app-card-bg)] rounded-xl border border-[var(--app-card-border)] shadow-2xl max-h-[85vh] flex flex-col">
+        <div className="w-full max-w-sm bg-white dark:bg-gray-900 rounded-xl border border-[var(--app-card-border)] shadow-2xl max-h-[85vh] flex flex-col">
           <div className="flex items-center justify-between p-4 border-b border-[var(--app-card-border)] flex-shrink-0">
             <h3 className="text-lg font-semibold">Messages</h3>
             <button
