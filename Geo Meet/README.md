@@ -1,4 +1,4 @@
-# GeoMeet Mini App (Base MiniKit) – 1-day MVP
+# GeoMeet Mini App (Base MiniKit)
 
 This repo implements GeoMeet as a Base Mini App using MiniKit. Core features:
 
@@ -42,19 +42,10 @@ create table if not exists meetups (
   feedback jsonb default '{}' -- { "0xabc": "👍", "0xdef": "👎" }
 );
 
--- Messages (optional)
-create table if not exists messages (
-  id uuid primary key default gen_random_uuid(),
-  meetup_id uuid references meetups(id),
-  sender text references profiles(id),
-  content text,
-  created_at timestamptz default now()
-);
 
 -- RLS (optional if using Service Role exclusively on server)
 alter table profiles enable row level security;
 alter table meetups enable row level security;
-alter table messages enable row level security;
 
 -- Policies
 create policy if not exists "Users can manage own profile" on profiles for all using (id = auth.jwt() ->> 'sub');
@@ -143,20 +134,20 @@ npm run dev
 - GET `/api/match?lat=..&lng=..&type=lunch|after-office` – list nearby users
 - POST `/api/meetup` – create meetup `{ participants, type }`
 - PUT `/api/meetup` – submit feedback `{ meetupId, userId, feedback }`
-- POST `/api/namecard` – exchange namecards `{ userA, userB }`
+
 
 ## 5. Minimal Client Flow
 
 - On wallet connect, browser geolocation is read and profile upserted with `id`, `availability`, `lat`, `lng`.
 - Click Find nearby to load matches within ~1km bounding box.
 - Create a meetup with a selected profile; then submit 👍/👎 as feedback.
-- Exchange virtual namecards at any time between two addresses.
+
 
 ## 6. 1-Day Timeline
 
 - Morning: Supabase project + schema + RPC + env setup (1–2h)
 - Late Morning: Implement API routes (1h)
-- Afternoon: Minimal client integration for connect + geo + match + meetup + feedback + namecards (2–3h)
+- Afternoon: Minimal client integration for connect + geo + match + meetup + feedback (2–3h)
 - Late Afternoon: Smoke test end-to-end; deploy if needed (1h)
 
 ## Template Features
@@ -188,22 +179,6 @@ The app is wrapped with `MiniKitProvider` in `providers.tsx`, configured with:
 - Sets up Frame SDK listeners
 - Applies Safe Area Insets
 
-## Customization
-
-To get started building your own frame, follow these steps:
-
-1. Remove the DemoComponents:
-   - Delete `components/DemoComponents.tsx`
-   - Remove demo-related imports from `page.tsx`
-
-2. Start building your Frame:
-   - Modify `page.tsx` to create your Frame UI
-   - Update theme variables in `theme.css`
-   - Adjust MiniKit configuration in `providers.tsx`
-
-3. Add your frame to your account:
-   - Cast your frame to see it in action
-   - Share your frame with others to start building your community
 
 ## Learn More
 

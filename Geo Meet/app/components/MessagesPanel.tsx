@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Button } from "./DemoComponents";
 import { apiGet, apiPut } from "@/lib/api";
 
 interface MessagesPanelProps {
@@ -33,7 +32,6 @@ type Profile = {
 export function MessagesPanel({
   isOpen,
   onClose,
-  onOpenChat,
   currentUserId,
 }: MessagesPanelProps) {
   const [meetups, setMeetups] = useState<Meetup[]>([]);

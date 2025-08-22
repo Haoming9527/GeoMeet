@@ -7,7 +7,12 @@ import { apiGet } from "@/lib/api";
 export default function SearchPage() {
   const router = useRouter();
   const [q, setQ] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Array<{
+    id: string;
+    name?: string;
+    industry?: string;
+    availability?: string;
+  }>>([]);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -18,9 +23,12 @@ export default function SearchPage() {
       }
       setLoading(true);
       try {
-        const data = await apiGet<any[]>(
-          `/api/search?q=${encodeURIComponent(q)}`,
-        );
+        const data = await apiGet<Array<{
+          id: string;
+          name?: string;
+          industry?: string;
+          availability?: string;
+        }>>(`/api/search?q=${encodeURIComponent(q)}`);
         setResults(data);
       } finally {
         setLoading(false);

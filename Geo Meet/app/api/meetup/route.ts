@@ -113,7 +113,7 @@ export async function PUT(request: NextRequest) {
     const participants = (current.participants as string[]).map((p) =>
       p.toLowerCase(),
     );
-    const feedbackRaw = (current.feedback as any) || {};
+    const feedbackRaw = (current.feedback as Record<string, string>) || {};
     const feedback: Record<string, string> = {};
     Object.keys(feedbackRaw).forEach(
       (k) => (feedback[k.toLowerCase()] = feedbackRaw[k]),

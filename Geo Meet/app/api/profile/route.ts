@@ -14,9 +14,10 @@ export async function POST(req: Request) {
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const error = e as Error;
     return NextResponse.json(
-      { error: String(e?.message ?? e) },
+      { error: String(error?.message ?? error) },
       { status: 500 },
     );
   }
@@ -36,9 +37,10 @@ export async function GET(req: Request) {
     if (error)
       return NextResponse.json({ error: error.message }, { status: 500 });
     return NextResponse.json(data);
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const error = e as Error;
     return NextResponse.json(
-      { error: e?.message ?? "Unknown error" },
+      { error: error?.message ?? "Unknown error" },
       { status: 500 },
     );
   }

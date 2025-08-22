@@ -20,11 +20,9 @@ type NearbyUser = {
 export function GeoMap({
   center,
   nearby,
-  showBlueDot = true,
 }: {
   center: LatLng | null;
   nearby: NearbyUser[];
-  showBlueDot?: boolean;
 }) {
   const [mounted, setMounted] = useState(false);
   const [mapKey] = useState(() => `map-${Math.random().toString(36).slice(2)}`);

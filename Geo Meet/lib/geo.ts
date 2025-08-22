@@ -21,7 +21,7 @@ export function sortByNearest<T extends { lat?: number; lng?: number }>(
   items: (T & { id: string })[],
 ): (T & { id: string; distanceMeters?: number })[] {
   if (!origin) return items;
-  const withDistance = items.map((i) => {
+  const withDistance: (T & { id: string; distanceMeters?: number })[] = items.map((i) => {
     if (typeof i.lat === "number" && typeof i.lng === "number") {
       return {
         ...i,

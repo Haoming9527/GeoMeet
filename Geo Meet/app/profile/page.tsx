@@ -19,7 +19,12 @@ export default function ProfilePage() {
     const load = async () => {
       if (!address) return;
       try {
-        const data = await apiGet<any>(`/api/profile?id=${address}`);
+        const data = await apiGet<{
+          name?: string;
+          industry?: string;
+          role?: string;
+          food_preference?: string;
+        }>(`/api/profile?id=${address}`);
         setDraft({
           name: data?.name ?? "",
           industry: data?.industry ?? "",
@@ -45,8 +50,7 @@ export default function ProfilePage() {
     try {
       await apiPost(`/api/profile`, { id: address, ...draft });
       alert("Profile saved");
-    } catch (e) {
-      console.error(e);
+    } catch {
       alert("Save failed");
     } finally {
       setSaving(false);

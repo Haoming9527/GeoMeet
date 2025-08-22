@@ -26,15 +26,16 @@ export async function GET(req: Request) {
 
     // Simple ~1km bounding box filter (approx; 0.01 deg ~ 1.1km latitude)
     const nearby = (users || []).filter(
-      (u: any) =>
+      (u: { lat?: number; lng?: number }) =>
         Math.abs((u?.lat ?? 0) - lat) < 0.01 &&
         Math.abs((u?.lng ?? 0) - lng) < 0.01,
     );
 
     return NextResponse.json(nearby);
-  } catch (e: any) {
+  } catch (e: unknown) {
+    const error = e as Error;
     return NextResponse.json(
-      { error: e?.message ?? "Unknown error" },
+      { error: error?.message ?? "Unknown error" },
       { status: 500 },
     );
   }

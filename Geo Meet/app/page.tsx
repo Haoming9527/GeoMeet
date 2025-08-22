@@ -22,8 +22,6 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { useAccount } from "wagmi";
 import { Button } from "./components/DemoComponents";
 import { Icon } from "./components/DemoComponents";
-import { Home } from "./components/DemoComponents";
-// Removed DemoComponents Home/Features in favor of GeoMeet UI
 import { GeoMap } from "./components/GeoMap";
 import { MessagesPanel } from "./components/MessagesPanel";
 import { sortByNearest } from "@/lib/geo";
@@ -32,7 +30,6 @@ import { apiGet, apiPost, apiPut, setCurrentUserAddress } from "@/lib/api";
 export default function App() {
   const { setFrameReady, isFrameReady, context } = useMiniKit();
   const [frameAdded, setFrameAdded] = useState(false);
-  const [activeTab, setActiveTab] = useState("home");
   const { address, status } = useAccount();
 
   const [availability, setAvailability] = useState<
@@ -41,7 +38,15 @@ export default function App() {
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(
     null,
   );
-  const [matches, setMatches] = useState<any[]>([]);
+  const [matches, setMatches] = useState<Array<{
+    id: string;
+    name?: string;
+    industry?: string;
+    availability?: string;
+    lat?: number;
+    lng?: number;
+    distanceMeters?: number;
+  }>>([]);
   const [lastMeetupId, setLastMeetupId] = useState<string | null>(null);
   const [pendingInviteUserIds, setPendingInviteUserIds] = useState<Set<string>>(
     new Set(),
@@ -55,7 +60,12 @@ export default function App() {
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQ, setSearchQ] = useState("");
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Array<{
+    id: string;
+    name?: string;
+    industry?: string;
+    availability?: string;
+  }>>([]);
   const [searching, setSearching] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isMessagesOpen, setIsMessagesOpen] = useState(false);
@@ -66,7 +76,7 @@ export default function App() {
     "granted" | "denied" | "prompt" | null
   >(null);
 
-  // Debounced search
+
   useEffect(() => {
     const id = setTimeout(async () => {
       if (!isSearchOpen) return;
@@ -76,9 +86,12 @@ export default function App() {
       }
       setSearching(true);
       try {
-        const data = await apiGet<any[]>(
-          `/api/search?q=${encodeURIComponent(searchQ)}`,
-        );
+        const data = await apiGet<Array<{
+          id: string;
+          name?: string;
+          industry?: string;
+          availability?: string;
+        }>>(`/api/search?q=${encodeURIComponent(searchQ)}`);
         setSearchResults(data);
       } finally {
         setSearching(false);
@@ -87,12 +100,17 @@ export default function App() {
     return () => clearTimeout(id);
   }, [isSearchOpen, searchQ]);
 
-  // Prefill inline profile panel when opened
+
   useEffect(() => {
     const loadProfile = async () => {
       if (!isProfileOpen || !address) return;
       try {
-        const data = await apiGet<any>(`/api/profile?id=${address}`);
+        const data = await apiGet<{
+          name?: string;
+          industry?: string;
+          role?: string;
+          food_preference?: string;
+        }>(`/api/profile?id=${address}`);
         setProfileDraft({
           name: data?.name ?? "",
           industry: data?.industry ?? "",
@@ -154,14 +172,14 @@ export default function App() {
     );
   }, [address, availability, geoPermission]);
 
-  // On wallet connect, capture geolocation and upsert a minimal profile
+
   useEffect(() => {
     if (status !== "connected" || !address) return;
     setCurrentUserAddress(address);
     requestLocation();
   }, [status, address, requestLocation]);
 
-  // Track geolocation permission changes (when supported)
+
   useEffect(() => {
     let ps: PermissionStatus | null = null;
     const setup = async () => {
@@ -203,7 +221,7 @@ export default function App() {
     }
   }, [coords, availability, address]);
 
-  // Auto-load nearby when coords or availability changes
+
   useEffect(() => {
     if (!coords) return;
     findNearby();
@@ -226,34 +244,19 @@ export default function App() {
     [address, availability],
   );
 
-  const submitFeedback = useCallback(
-    async (satisfied: boolean) => {
-      if (!address || !lastMeetupId) return;
-      try {
-        await apiPut("/api/meetup", {
-          meetupId: lastMeetupId,
-          userId: address,
-          feedback: satisfied ? "👍" : "👎",
-        });
-        console.log("Feedback submitted");
-      } catch (e) {
-        console.error("Feedback failed", e);
-      }
-    },
-    [address, lastMeetupId],
-  );
+
 
   const handleOpenChat = useCallback((userId: string) => {
     setSelectedUserId(userId);
   }, []);
 
-  // Load invites to control red dot
+
   useEffect(() => {
     const loadInvites = async () => {
       if (!address) return;
       try {
-        const data = await apiGet<any[]>(`/api/meetup?userId=${address}`);
-        const pending = (data || []).some((m: any) => m.status === "pending");
+        const data = await apiGet<Array<{ status: string }>>(`/api/meetup?userId=${address}`);
+        const pending = (data || []).some((m) => m.status === "pending");
         setHasPendingInvites(pending);
       } catch (e) {
         // ignore
@@ -373,27 +376,51 @@ export default function App() {
           {/* If not logged in, show marketing and prompt to connect */}
           {!address && (
             <div className="space-y-3">
-              <div className="p-4 rounded-lg border border-[var(--app-card-border)]">
-                <h2 className="text-lg font-semibold mb-1">Map Location</h2>
-                <p className="text-sm text-[var(--app-foreground-muted)]">
-                  Discover nearby professionals for lunch or after-office
-                  meetups in industrial areas. Trade virtual namecards and share
-                  feedback — built on Base with MiniKit.
-                </p>
-                <div className="mt-3">
-                  <Wallet className="z-10">
-                    <ConnectWallet>
-                      <Name className="text-inherit" />
-                    </ConnectWallet>
-                  </Wallet>
+                              <div className="p-4 rounded-lg border border-[var(--app-card-border)]">
+                  <h2 className="text-xl font-semibold mb-3">Geo Meet</h2>
+                  <p className="text-base text-[var(--app-foreground-muted)]">
+                    Connect with nearby professionals for meaningful networking opportunities.
+                  </p>
+                  <div className="mt-4">
+                    <Wallet className="z-10">
+                      <ConnectWallet>
+                        <Name className="text-inherit" />
+                      </ConnectWallet>
+                    </Wallet>
+                  </div>
                 </div>
-              </div>
-              <div className="rounded-lg overflow-hidden border border-[var(--app-card-border)]">
-                <img
-                  src="/screenshot.png"
-                  alt="GeoMeet preview"
-                  className="w-full"
-                />
+                
+                <div className="p-4 rounded-lg border border-[var(--app-card-border)]">
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <img
+                        src="/people.png"
+                        alt="GeoMeet preview"
+                        className="w-full object-contain rounded-lg"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-xl font-semibold mb-3">How It Connects People</h3>
+                                          <div className="text-sm text-[var(--app-foreground-muted)] space-y-3">
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0"></span>
+                          <div className="font-medium">Cross-Industry Networking</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0"></span>
+                          <div className="font-medium">Location-Based Matching</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-purple-500 rounded-full flex-shrink-0"></span>
+                          <div className="font-medium">Professional Networking</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="w-2 h-2 bg-orange-500 rounded-full flex-shrink-0"></span>
+                          <div className="font-medium">Feedback System</div>
+                        </div>
+                      </div>
+                  </div>
+                </div>
               </div>
               {/* Search bar is hidden until login */}
             </div>
@@ -585,8 +612,8 @@ export default function App() {
                     </div>
                     <div className="text-xs text-[var(--app-foreground-muted)] mb-2">
                       Please enable location for this site in your browser
-                      settings and try again. If you previously clicked "Don't
-                      allow", reset the permission and reload.
+                      settings and try again. If you previously clicked &quot;Don&apos;t
+                      allow&quot;, reset the permission and reload.
                     </div>
                     {/* Retry and Reload removed per request. */}
                   </div>
@@ -692,11 +719,6 @@ export default function App() {
         </main>
 
         {/* Slide-over panels removed per request */}
-
-        {/* Demo section at bottom for reference */}
-        <div className="mt-6">
-          <Home setActiveTab={() => {}} />
-        </div>
 
         <footer className="mt-2 pt-4 flex justify-center">
           <Button

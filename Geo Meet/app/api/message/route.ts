@@ -8,7 +8,7 @@ const supabase = createClient(
 
 export async function POST(request: NextRequest) {
   try {
-    const { to, message } = await request.json();
+    const { message } = await request.json();
 
     if (!message) {
       return NextResponse.json(

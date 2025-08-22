@@ -70,13 +70,6 @@ CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
 - Messages panel shows all conversations with unread indicators
 - Clicking a user in the messages list opens the chat slide-over
 
-### Slide-over Panels
-
-- Message/Pay button opens a modal panel that covers the full mobile page
-- Shows user profile information in the panel
-- Combines both messaging and payment functionality in one interface
-- Message functionality uses your meetup-based schema
-- Pay functionality uses Base Pay button with Transaction preview and 0.001 ETH default amount
 
 ### Map Updates
 
