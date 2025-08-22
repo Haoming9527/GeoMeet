@@ -1,15 +1,83 @@
-# MiniKit Template
+# GeoMeet Mini App (Base MiniKit) – 1-day MVP
 
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-onchain --mini`](), configured with:
+This repo implements GeoMeet as a Base Mini App using MiniKit. Core features:
+
+- Wallet-based identity (address = user id)
+- Profile with availability and geolocation
+- Nearby matching by availability and location
+- Meetup creation and feedback (👍/👎)
+
+Tech:
 
 - [MiniKit](https://docs.base.org/builderkits/minikit/overview)
 - [OnchainKit](https://www.base.org/builders/onchainkit)
-- [Tailwind CSS](https://tailwindcss.com)
 - [Next.js](https://nextjs.org/docs)
+- [Supabase](https://supabase.com) (DB + RPC)
 
-## Getting Started
+## 1. Supabase Setup
+
+Run the following SQL in the Supabase SQL editor:
+
+```sql
+-- Profiles (user credentials)
+create table if not exists profiles (
+  id text primary key, -- wallet address
+  name text,
+  industry text,
+  role text,
+  food_preference text,
+  availability text check (availability in ('lunch','after-office')),
+  lat double precision,
+  lng double precision,
+  contacts text[] default '{}' -- exchanged namecards
+);
+
+-- Meetups
+create table if not exists meetups (
+  id uuid primary key default gen_random_uuid(),
+  participants text[] not null, -- wallet addresses
+  type text check (type in ('lunch','after-office')),
+  start_time timestamptz default now(),
+  status text default 'ongoing',
+  feedback jsonb default '{}' -- { "0xabc": "👍", "0xdef": "👎" }
+);
+
+-- Messages (optional)
+create table if not exists messages (
+  id uuid primary key default gen_random_uuid(),
+  meetup_id uuid references meetups(id),
+  sender text references profiles(id),
+  content text,
+  created_at timestamptz default now()
+);
+
+-- RLS (optional if using Service Role exclusively on server)
+alter table profiles enable row level security;
+alter table meetups enable row level security;
+alter table messages enable row level security;
+
+-- Policies
+create policy if not exists "Users can manage own profile" on profiles for all using (id = auth.jwt() ->> 'sub');
+create policy if not exists "Profiles readable by anyone" on profiles for select using (true);
+create policy if not exists "Participants can view meetups" on meetups for select using (auth.jwt() ->> 'sub' = any(participants));
+create policy if not exists "Participants can update meetups" on meetups for update using (auth.jwt() ->> 'sub' = any(participants));
+
+-- RPC for namecards
+create or replace function exchange_namecards(user_a text, user_b text)
+returns void as $$
+begin
+  update profiles set contacts = array_append(contacts, user_b) where id = user_a;
+  update profiles set contacts = array_append(contacts, user_a) where id = user_b;
+end;
+$$ language plpgsql;
+```
+
+Note: This app uses the Service Role key server-side to bypass RLS for simplicity in MVP.
+
+## 2. Environment Variables
 
 1. Install dependencies:
+
 ```bash
 npm install
 # or
@@ -56,31 +124,64 @@ NEXT_PUBLIC_APP_OG_IMAGE=
 # Redis config
 REDIS_URL=
 REDIS_TOKEN=
+
+# Supabase
+NEXT_PUBLIC_SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
 ```
 
-3. Start the development server:
+## 3. Local Dev
+
 ```bash
 npm run dev
 ```
 
+## 4. API Endpoints
+
+- POST `/api/profile` – upsert profile
+- GET `/api/profile?id=0x...` – get profile
+- GET `/api/match?lat=..&lng=..&type=lunch|after-office` – list nearby users
+- POST `/api/meetup` – create meetup `{ participants, type }`
+- PUT `/api/meetup` – submit feedback `{ meetupId, userId, feedback }`
+- POST `/api/namecard` – exchange namecards `{ userA, userB }`
+
+## 5. Minimal Client Flow
+
+- On wallet connect, browser geolocation is read and profile upserted with `id`, `availability`, `lat`, `lng`.
+- Click Find nearby to load matches within ~1km bounding box.
+- Create a meetup with a selected profile; then submit 👍/👎 as feedback.
+- Exchange virtual namecards at any time between two addresses.
+
+## 6. 1-Day Timeline
+
+- Morning: Supabase project + schema + RPC + env setup (1–2h)
+- Late Morning: Implement API routes (1h)
+- Afternoon: Minimal client integration for connect + geo + match + meetup + feedback + namecards (2–3h)
+- Late Afternoon: Smoke test end-to-end; deploy if needed (1h)
+
 ## Template Features
 
 ### Frame Configuration
+
 - `.well-known/farcaster.json` endpoint configured for Frame metadata and account association
 - Frame metadata automatically added to page headers in `layout.tsx`
 
 ### Background Notifications
+
 - Redis-backed notification system using Upstash
 - Ready-to-use notification endpoints in `api/notify` and `api/webhook`
 - Notification client utilities in `lib/notification-client.ts`
 
 ### Theming
+
 - Custom theme defined in `theme.css` with OnchainKit variables
 - Pixel font integration with Pixelify Sans
 - Dark/light mode support through OnchainKit
 
 ### MiniKit Provider
+
 The app is wrapped with `MiniKitProvider` in `providers.tsx`, configured with:
+
 - OnchainKit integration
 - Access to Frames context
 - Sets up Wagmi Connectors
