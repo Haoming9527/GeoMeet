@@ -6,7 +6,6 @@ A location-based networking app built for the NTU x Base Web 3 Hackathon that he
 
 - **📍 Real-time Location Sharing**: See nearby professionals on an interactive map
 - **🤝 Smart Matching**: Find colleagues based on availability and proximity
-- **💬 Built-in Messaging**: Chat with potential meetup partners
 - **💳 Web3 Integration**: Connect with Base wallet and use Base Pay for transactions
 - **📱 Mobile-First Design**: Responsive interface optimized for mobile devices
 - **🔔 Real-time Notifications**: Get notified about new messages and invites
@@ -77,20 +76,6 @@ A location-based networking app built for the NTU x Base Web 3 Hackathon that he
      status text default 'ongoing',
      feedback jsonb default '{}'
    );
-
-   -- Messages table
-   create table messages (
-     id uuid primary key default gen_random_uuid(),
-     meetup_id uuid references meetups(id),
-     sender text references profiles(id),
-     content text,
-     created_at timestamptz default now()
-   );
-
-   -- Performance indexes
-   CREATE INDEX IF NOT EXISTS idx_messages_meetup_id ON messages(meetup_id);
-   CREATE INDEX IF NOT EXISTS idx_messages_sender ON messages(sender);
-   CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
    ```
 
 5. **Run the development server**
@@ -118,12 +103,6 @@ A location-based networking app built for the NTU x Base Web 3 Hackathon that he
 - **Distance Calculation**: Automatic distance calculation between users
 - **Clickable Markers**: Click on user markers to see details and actions
 
-## 💬 Messaging System
-
-- **Real-time Chat**: Instant messaging with other users
-- **Meetup Coordination**: Send and receive meetup invitations
-- **Unread Indicators**: Visual indicators for new messages
-- **Message History**: Persistent chat history stored in Supabase
 
 ## 🔧 Development
 
@@ -180,5 +159,3 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 - Powered by Base Network and Coinbase OnchainKit
 - Maps powered by Leaflet
 - Database hosted on Supabase
-
-
